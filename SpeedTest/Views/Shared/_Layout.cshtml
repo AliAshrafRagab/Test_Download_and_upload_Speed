@@ -1,0 +1,21 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link href="~/testspeed/css/app.css" rel="stylesheet" type="text/css" />
+    <script> window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches&&(document.head.innerHTML+='<link id="darkmode" rel="stylesheet" href="~/testspeed/css/darkmode.css" type="text/css"/>');function getCookieValue(b,a){return(a=document.cookie.match("(^|;)\\s*"+b+"\\s*=\\s*([^;]+)"))?a.pop():""}if("light"===getCookieValue("mode")){var darkStyle=document.getElementById("darkmode");darkStyle&&darkStyle.parentNode.removeChild(darkStyle)}; </script>
+</head>
+<body>
+    <header>
+
+    </header>
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+
+    <script src="~/testspeed/js/app-2.5.4.js" asp-append-version="true"></script>
+    <script src="~/testspeed/js/darkmode.js" asp-append-version="true"></script>
+</body>
+</html>
