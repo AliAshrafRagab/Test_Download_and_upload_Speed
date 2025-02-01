@@ -1,44 +1,72 @@
 ﻿using SpeedTest;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// إضافة خدمات الـ HTTP Context
 builder.Services.AddHttpContextAccessor();
 
-// Add services to the container.
+// إضافة إعدادات CORS للسماح بالطلبات من جميع النطاقات
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAllOrigins", builder =>
+        builder.AllowAnyOrigin()
+               .AllowAnyMethod()
+               .AllowAnyHeader());
+});
+
+// إضافة الخدمات اللازمة للتحكم في العرض
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// تحديد البيئة (لتخصيص التعامل مع الأخطاء)
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
 }
+
 app.UseRouting();
 
-app.UseAuthorization();
-
+// تفعيل ملفات ثابتة و CORS
 app.MapStaticAssets();
-// تفعيل التصريحات للملفات الثابتة (Static Files)
-app.UseStaticFiles(); // تأكد من أنك تستخدم هذه لتفعيل الملفات الثابتة
+app.UseStaticFiles();
+app.UseCors("AllowAllOrigins");
 
-// دمج الـ Middleware مباشرة مع MapControllerRoute باستخدام MapWhen
-// دمج الـ Middleware مباشرة مع MapControllerRoute باستخدام MapWhen
+
+// تخصيص المسار /TestUploadSpeed للتعامل مع POST
 app.MapWhen(context => context.Request.Path.Equals("/TestUploadSpeed", StringComparison.OrdinalIgnoreCase),
     builder =>
     {
         builder.Run(async context =>
         {
-            // إرسال استجابة فورية للمسار /upload
+            // إرسال استجابة فورية للمسار /TestUploadSpeed
             context.Response.StatusCode = 200;
             await context.Response.WriteAsync("Upload handler - 200 OK");
         });
     });
+app.Use(async (context, next) =>
+{
+    context.Response.Headers["Cache-Control"] = "no-store, no-cache, no-transform, must-revalidate";
+    await next.Invoke();
+});
+app.Use(async (context, next) =>
+{
+    context.Response.Headers["Cache-Control"] = "no-store";
+    context.Response.Headers["Pragma"] = "no-cache";
+    context.Response.Headers["Expires"] = "0";
+    await next.Invoke();
+});
+app.Use(async (context, next) =>
+{
+    context.Request.ContentLength = 2147483647; // تحديد الحد الأقصى لحجم الطلب
+    await next.Invoke();
+});
 
-
+// تخصيص المسار الافتراضي
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
 
-
+// تشغيل التطبيق
 app.Run();
